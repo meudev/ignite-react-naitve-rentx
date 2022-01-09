@@ -5,12 +5,16 @@
     "name": "rentx",
     "slug": "rentx",
     "version": "1.0.0",
+    "plugins": ["@morrowdigital/watermelondb-expo-plugin"],
     "assetBundlePatterns": [
       "**/*"
     ],
     "splash": {
       "image": "./assets/splash.png",
       "backgroundColor": "#1B1B1F"
+    },
+    "android": {
+      "package": "com.abdesalan.rentx"
     }
   }
 }

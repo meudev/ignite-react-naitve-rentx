@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTheme } from 'styled-components';
 import { StatusBar, StyleSheet } from 'react-native';
@@ -13,6 +13,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { CarDTO } from '../../dtos/CarDTO';
+import { Car as ModelCar } from '../../databases/model/Car';
 
 import { BackButton } from '../../components/BackButton';
 import { ImageSlider } from '../../components/ImageSlider';
@@ -36,13 +37,19 @@ import {
     Accessories,
     Footer,
 } from './styles';
+import api from '../../services/api';
+import { useNetInfo } from '@react-native-community/netinfo';
 
 
 interface Params {
-    car: CarDTO;
+    car: ModelCar;
 }
 
 export function CarDetails() {
+    const [carUpdated, setCarUpdated] = useState<CarDTO>({} as CarDTO);
+
+    const netInfo = useNetInfo();
+
     const navigation = useNavigation<any>();
     const route = useRoute();
     const { car } = route.params as Params;
@@ -83,6 +90,18 @@ export function CarDetails() {
         navigation.goBack();
     }
 
+    useEffect(() => {
+        async function fetchCarUpdated() {
+            const response = await api.get(`/cars/${car.id}`);
+
+            setCarUpdated(response.data);
+        }
+
+        if(netInfo.isConnected === true) {
+            fetchCarUpdated();
+        }
+    }, [netInfo.isConnected])
+
     return (
         <Container>
             <StatusBar
@@ -94,18 +113,18 @@ export function CarDetails() {
                 style={[
                     headerStyleAnimation,
                     styles.header,
-                    { backgroundColor: theme.colors.background_secondary}
+                    { backgroundColor: theme.colors.background_secondary }
                 ]}
             >
                 <Header>
-                    <BackButton onPress={handleBack}/>
+                    <BackButton onPress={handleBack} />
                 </Header>
 
                 <Animated.View
                     style={sliderCarsStyleAnimation}
                 >
                     <CarImages>
-                        <ImageSlider imagesUrl={car.photos} />
+                        <ImageSlider imagesUrl={!!carUpdated.photos ? carUpdated.photos : [{ id: car.thumbnail, photo: car.thumbnail }]} />
                     </CarImages>
                 </Animated.View>
             </Animated.View>
@@ -126,28 +145,31 @@ export function CarDetails() {
                     </Description>
 
                     <Rent>
-                        <Period>{car.rent.period}</Period>
-                        <Price>R$ {car.rent.price}</Price>
+                        <Period>{car.period}</Period>
+                        <Price>R$ { netInfo.isConnected === true ? car.price : '...' }</Price>
                     </Rent>
                 </Details>
+                {
+                    carUpdated.accessories &&
+                    <Accessories>
+                        {
+                            carUpdated.accessories.map(accessory => (
+                                <Accessory
+                                    key={accessory.type}
+                                    name={accessory.name}
+                                    icon={getAccessoryIcon(accessory.type)}
+                                />
+                            ))
+                        }
+                    </Accessories>
 
-                <Accessories>
-                    {
-                        car.accessories.map(accessory => (
-                            <Accessory
-                                key={accessory.type}
-                                name={accessory.name}
-                                icon={getAccessoryIcon(accessory.type)}
-                            />
-                        ))
-                    }
-                </Accessories>
+                }
 
                 <About>{car.about}</About>
             </Animated.ScrollView>
 
             <Footer>
-                <Button title="Escolher período do aluguel" onPress={handleConfirmRental} />
+                <Button title="Escolher período do aluguel" onPress={handleConfirmRental} enabled={netInfo.isConnected === true}/>
             </Footer>
         </Container>
     );

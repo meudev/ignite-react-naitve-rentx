@@ -24,7 +24,8 @@ export function Splash() {
 
     const brandStyle = useAnimatedStyle(() => {
         return {
-            opacity: interpolate(splashAnimation.value,
+            opacity: interpolate(
+                splashAnimation.value,
                 [0, 20, 40],
                 [1, .5, 0],
                 Extrapolate.CLAMP
@@ -34,7 +35,8 @@ export function Splash() {
 
     const logoStyle = useAnimatedStyle(() => {
         return {
-            opacity: interpolate(splashAnimation.value,
+            opacity: interpolate(
+                splashAnimation.value,
                 [60, 80, 100],
                 [0, .5, 1],
                 Extrapolate.CLAMP
@@ -43,7 +45,7 @@ export function Splash() {
     })
 
     function startApp() {
-        navigation.navigate('Home');
+        navigation.navigate('SignIn');
     }
 
     useEffect(() => {
